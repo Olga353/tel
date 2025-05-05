@@ -2,21 +2,18 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Перевірка Telegram Login Widget</title>
-    
-    <!-- Добавляем ссылку на фавиконку -->
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-
+    <title>Авторизація через Telegram</title>
     <script async src="https://telegram.org/js/telegram-widget.js?22"
-            data-telegram-login="NameNestBot" 
-            data-size="large" 
-            data-radius="10" 
+            data-telegram-login="NameNestBot"
+            data-size="large"
+            data-radius="10"
             data-request-access="write"
-            data-onauth="onTelegramAuth(user)"></script>
+            data-onauth="onTelegramAuth(user)">
+    </script>
 </head>
 <body>
     <h1>Авторизація через Telegram</h1>
-    <p>Якщо ви авторизуєтесь через Telegram, буде відображено ваш user_id.</p>
+    <p>Натисніть кнопку нижче, щоб авторизуватись:</p>
 
     <div id="result">Очікуємо авторизації...</div>
 
@@ -24,21 +21,17 @@
         function onTelegramAuth(user) {
             const resultDiv = document.getElementById('result');
             const user_id = user.id;
-
             resultDiv.innerText = `Ваш user_id: ${user_id}`;
 
-            // Виконати POST-запит на сервер для передачі даних
             const xhr = new XMLHttpRequest();
             xhr.open('POST', 'https://ws.zolotiyvik.ua:8443/Buffer/hs/Incoming/test/');
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             xhr.onload = function () {
-                if (xhr.status === 200) {
-                    resultDiv.innerText += `\nВідповідь: ${xhr.responseText}`;
-                } else {
-                    resultDiv.innerText += `\nПомилка: ${xhr.status}`;
-                }
+                resultDiv.innerText += xhr.status === 200
+                    ? `\nВідповідь: ${xhr.responseText}`
+                    : `\nПомилка: ${xhr.status}`;
             };
-            xhr.onerror = function () {
+            xhr.onerror = () => {
                 resultDiv.innerText += '\nПомилка запиту.';
             };
             xhr.send(`user_id=${encodeURIComponent(user_id)}`);
