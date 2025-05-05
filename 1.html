@@ -3,59 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <title>Тест авторизації через Telegram</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        #content { display: none; }
-    </style>
+    <script src="https://telegram.org/js/telegram-widget.js?7"
+            data-telegram-login="@NameNestBot"
+            data-size="large"
+            data-radius="10"
+            data-request-access="write"></script>
 </head>
 <body>
-<div id="content">
-    <h1>Вітаємо! Ви маєте доступ.</h1>
-    <p>Цей контент бачать тільки дозволені користувачі.</p>
-</div>
-
-<div id="no-access" style="display: none;">
-    <h1>Доступ заборонено</h1>
-    <p>Вибачте, але у вас немає доступу до цієї сторінки.</p>
-</div>
+<h1>Перевірка доступу через Telegram WebApp</h1>
+<button id="checkAccess">Перевірити доступ</button>
+<div id="result"></div>
 
 <script>
-    window.onload = function () {
+    document.getElementById('checkAccess').addEventListener('click', function () {
         if (typeof Telegram === 'undefined' || !Telegram.WebApp.initDataUnsafe) {
-            document.body.innerHTML = '<h1>Telegram WebApp не ініціалізований.</h1>';
+            document.getElementById('result').innerText = 'Telegram WebApp не ініціалізований.';
             return;
         }
 
         const user_id = Telegram.WebApp.initDataUnsafe.user?.id;
         if (!user_id) {
-            document.body.innerHTML = '<h1>Не вдалося отримати user_id.</h1>';
+            document.getElementById('result').innerText = 'Не вдалося отримати user_id.';
             return;
         }
 
+        document.getElementById('result').innerText = `Отримано user_id: ${user_id}. Виконується перевірка...`;
+
         // Виконуємо AJAX-запит
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'https://ws.zolotiyvik.ua:8443/Buffer/hs/Incoming/test/');
+        xhr.open('POST', 'https://ws.zolotiyvik.ua:8443/Buffer/hs/Incoming/test/'); // URL для перевірки
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         xhr.onload = function () {
             if (xhr.status === 200) {
-                let response = xhr.responseText.trim().toLowerCase();
-
-                // Перевіряємо відповідь
-                if (response === 'true') {
-                    document.getElementById('content').style.display = 'block';
+                const response = JSON.parse(xhr.responseText);
+                if (response.status === 'true') {
+                    document.getElementById('result').innerText += `\nДоступ дозволено.`;
                 } else {
-                    document.getElementById('no-access').style.display = 'block';
+                    document.getElementById('result').innerText += `\nДоступ заборонено.`;
                 }
             } else {
-                document.body.innerHTML = `<h1>Помилка сервера. Код: ${xhr.status}</h1>`;
+                document.getElementById('result').innerText += `\nСталася помилка. Код статусу: ${xhr.status}`;
             }
         };
         xhr.onerror = function () {
-            document.body.innerHTML = '<h1>Помилка запиту.</h1>';
+            document.getElementById('result').innerText += '\nПомилка запиту.';
         };
-
         xhr.send(`user_id=${encodeURIComponent(user_id)}`);
-    };
+    });
 </script>
 </body>
 </html>
