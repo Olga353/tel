@@ -2,54 +2,57 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Тест авторизації через Telegram</title>
-    <script src="https://telegram.org/js/telegram-widget.js?7"
-            data-telegram-login="@NameNestBot"
-            data-size="large"
-            data-radius="10"
+    <title>Перевірка Telegram Login Widget</title>
+    <script async src="https://telegram.org/js/telegram-widget.js?7"
+            data-telegram-login="@NameNestBot" 
+            data-size="large" 
+            data-radius="10" 
             data-request-access="write"></script>
 </head>
 <body>
-<h1>Перевірка доступу через Telegram WebApp</h1>
-<button id="checkAccess">Перевірити доступ</button>
-<div id="result"></div>
+    <h1>Авторизація через Telegram</h1>
+    <p>Якщо ви авторизуєтесь через Telegram, буде відображено ваш user_id.</p>
 
-<script>
-    document.getElementById('checkAccess').addEventListener('click', function () {
-        if (typeof Telegram === 'undefined' || !Telegram.WebApp.initDataUnsafe) {
-            document.getElementById('result').innerText = 'Telegram WebApp не ініціалізований.';
-            return;
-        }
+    <div id="result"></div>
 
-        const user_id = Telegram.WebApp.initDataUnsafe.user?.id;
-        if (!user_id) {
-            document.getElementById('result').innerText = 'Не вдалося отримати user_id.';
-            return;
-        }
+    <script>
+        // Перевірка отриманих даних від Telegram Login Widget
+        window.addEventListener('DOMContentLoaded', function() {
+            const resultDiv = document.getElementById('result');
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Перевірка наявності параметра tg_user
+            if (urlParams.has('tg_user')) {
+                const userData = JSON.parse(decodeURIComponent(urlParams.get('tg_user')));
 
-        document.getElementById('result').innerText = `Отримано user_id: ${user_id}. Виконується перевірка...`;
+                // Отримання user_id з даних
+                const user_id = userData?.id;
 
-        // Виконуємо AJAX-запит
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'https://ws.zolotiyvik.ua:8443/Buffer/hs/Incoming/test/'); // URL для перевірки
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                const response = JSON.parse(xhr.responseText);
-                if (response.status === 'true') {
-                    document.getElementById('result').innerText += `\nДоступ дозволено.`;
+                if (user_id) {
+                    resultDiv.innerText = `Ваш user_id: ${user_id}`;
+                    
+                    // Виконання додаткових запитів до сервера, якщо потрібно
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', 'https://ws.zolotiyvik.ua:8443/Buffer/hs/Incoming/test/');
+                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr.onload = function () {
+                        if (xhr.status === 200) {
+                            resultDiv.innerText += `\nВідповідь: ${xhr.responseText}`;
+                        } else {
+                            resultDiv.innerText += `\nПомилка: ${xhr.status}`;
+                        }
+                    };
+                    xhr.onerror = function () {
+                        resultDiv.innerText += '\nПомилка запиту.';
+                    };
+                    xhr.send(`user_id=${encodeURIComponent(user_id)}`);
                 } else {
-                    document.getElementById('result').innerText += `\nДоступ заборонено.`;
+                    resultDiv.innerText = 'Не вдалося отримати user_id.';
                 }
             } else {
-                document.getElementById('result').innerText += `\nСталася помилка. Код статусу: ${xhr.status}`;
+                resultDiv.innerText = 'Немає даних про авторизацію користувача.';
             }
-        };
-        xhr.onerror = function () {
-            document.getElementById('result').innerText += '\nПомилка запиту.';
-        };
-        xhr.send(`user_id=${encodeURIComponent(user_id)}`);
-    });
-</script>
+        });
+    </script>
 </body>
 </html>
