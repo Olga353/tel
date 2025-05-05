@@ -8,7 +8,6 @@
             data-size="large" 
             data-radius="10" 
             data-request-access="write"
-            data-auth-url="https://ws.zolotiyvik.ua:8443/Buffer/hs/Incoming/test/"
             data-onauth="onTelegramAuth(user)"></script>
 </head>
 <body>
@@ -24,7 +23,7 @@
 
             resultDiv.innerText = `Ваш user_id: ${user_id}`;
 
-            // Виконати POST-запит
+            // Виконати POST-запит на сервер для передачі даних
             const xhr = new XMLHttpRequest();
             xhr.open('POST', 'https://ws.zolotiyvik.ua:8443/Buffer/hs/Incoming/test/');
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
