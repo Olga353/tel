@@ -3,56 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <title>Перевірка Telegram Login Widget</title>
-    <script async src="https://telegram.org/js/telegram-widget.js?7"
+    <script async src="https://telegram.org/js/telegram-widget.js?22"
             data-telegram-login="NameNestBot" 
             data-size="large" 
             data-radius="10" 
-            data-request-access="write"></script>
+            data-request-access="write"
+            data-onauth="onTelegramAuth(user)"></script>
 </head>
 <body>
     <h1>Авторизація через Telegram</h1>
     <p>Якщо ви авторизуєтесь через Telegram, буде відображено ваш user_id.</p>
 
-    <div id="result"></div>
+    <div id="result">Очікуємо авторизації...</div>
 
     <script>
-        // Перевірка отриманих даних від Telegram Login Widget
-        window.addEventListener('DOMContentLoaded', function() {
+        function onTelegramAuth(user) {
             const resultDiv = document.getElementById('result');
-            const urlParams = new URLSearchParams(window.location.search);
-            
-            // Перевірка наявності параметра tg_user
-            if (urlParams.has('tg_user')) {
-                const userData = JSON.parse(decodeURIComponent(urlParams.get('tg_user')));
+            const user_id = user.id;
 
-                // Отримання user_id з даних
-                const user_id = userData?.id;
+            resultDiv.innerText = `Ваш user_id: ${user_id}`;
 
-                if (user_id) {
-                    resultDiv.innerText = `Ваш user_id: ${user_id}`;
-                    
-                    // Виконання додаткових запитів до сервера, якщо потрібно
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('POST', 'https://ws.zolotiyvik.ua:8443/Buffer/hs/Incoming/test/');
-                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                    xhr.onload = function () {
-                        if (xhr.status === 200) {
-                            resultDiv.innerText += `\nВідповідь: ${xhr.responseText}`;
-                        } else {
-                            resultDiv.innerText += `\nПомилка: ${xhr.status}`;
-                        }
-                    };
-                    xhr.onerror = function () {
-                        resultDiv.innerText += '\nПомилка запиту.';
-                    };
-                    xhr.send(`user_id=${encodeURIComponent(user_id)}`);
+            // Виконати POST-запит
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://ws.zolotiyvik.ua:8443/Buffer/hs/Incoming/test/');
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    resultDiv.innerText += `\nВідповідь: ${xhr.responseText}`;
                 } else {
-                    resultDiv.innerText = 'Не вдалося отримати user_id.';
+                    resultDiv.innerText += `\nПомилка: ${xhr.status}`;
                 }
-            } else {
-                resultDiv.innerText = 'Немає даних про авторизацію користувача.';
-            }
-        });
+            };
+            xhr.onerror = function () {
+                resultDiv.innerText += '\nПомилка запиту.';
+            };
+            xhr.send(`user_id=${encodeURIComponent(user_id)}`);
+        }
     </script>
 </body>
 </html>
